@@ -1,5 +1,6 @@
 // const axios = require('axios');
 // const BN = require('bn.js');
+const fs = require('fs');
 
 // const artifacts = require('truffle');
 
@@ -33,9 +34,17 @@ async function filterEvents(oracleContract) {
   });
 }
 
+// save the address to use with the testing file
+function saveAddress(address) {
+  fs.writeFileSync('ORACLEADDRESS', address, (err) => {
+    if (err) throw err;
+    console.log(`Oracle contract deployed at ${address}`);
+  });
+}
+
 async function main() {
   const contract = await getOracleContract();
-  console.log(contract.address);
+  saveAddress(contract.address);
   filterEvents(contract);
 }
 
