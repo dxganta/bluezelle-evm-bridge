@@ -1,3 +1,4 @@
+const { assert } = require('console');
 const fs = require('fs');
 const Oracle = artifacts.require('BluezelleOracle');
 
@@ -9,10 +10,19 @@ fs.readFile('ORACLEADDRESS', (encoding = 'utf-8'), (err, data) => {
 });
 
 contract('Console tests', async () => {
-  it('should fire GetOracleValueEvent', async () => {
+  beforeEach(async () => {
     oracleContract = await Oracle.at(oracleAddress);
+  });
+
+  it('should fire GetOracleValueEvent', async () => {
     const tx = await oracleContract.getOracleValue('btc', 'usd');
 
     assert(tx.logs[0].event == 'GetOracleValueEvent');
+  });
+
+  it('should fire GetDBValueEvent', async () => {
+    const tx = await oracleContract.getDBValue('1101', 'name');
+
+    assert(tx.logs[0].event == 'GetDBValueEvent');
   });
 });

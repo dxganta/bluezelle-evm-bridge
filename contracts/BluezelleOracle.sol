@@ -11,7 +11,7 @@ import "./interfaces/ICallerContract.sol";
 
 contract BluezelleOracle is Ownable {
   uint private randNonce = 0;
-  uint private modulus = 100000;
+  uint private modulus = 10e10;
   mapping(uint256=>bool) pendingRequests;
 
   event GetOracleValueEvent(address callerAddress, uint id, string pair1, string pair2);
