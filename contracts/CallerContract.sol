@@ -1,19 +1,19 @@
 //SPDX-License-Identifier: GPL 3
 pragma solidity ^0.8.0;
 
-import "./interfaces/IBluezelleOracle.sol";
+import "./interfaces/IBluzelleOracle.sol";
 import "./dependencies/Ownable.sol";
 import "./interfaces/ICallerContract.sol";
 
 
 /*
  This is just an example Caller Contract for the user's reference
- for interacting with the BluezelleOracle
+ for interacting with the BluzelleOracle
  */
 
 contract CallerContract is ICallerContract, Ownable {
 
-    IBluezelleOracle private oracleInstance;
+    IBluzelleOracle private oracleInstance;
     address private oracleAddress;
     mapping(uint => bool) myRequests;
     uint public btcValue;
@@ -36,7 +36,7 @@ contract CallerContract is ICallerContract, Ownable {
 
     function setOracleAddress(address _oracle) public onlyOwner {
         oracleAddress = _oracle;
-        oracleInstance = IBluezelleOracle(oracleAddress);
+        oracleInstance = IBluzelleOracle(oracleAddress);
         emit OracleAddressUpdated(oracleAddress);
     }
 

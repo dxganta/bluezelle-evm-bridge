@@ -9,7 +9,7 @@ import "./interfaces/ICallerContract.sol";
 // but the real values will be pretty small right, like "usdt" "btc", etc.
 // so put a bytes___ (like bytes12 or maybe bytes8, etc.) value instead of string. figure out which one will be the best
 
-contract BluezelleOracle is Ownable {
+contract BluzelleOracle is Ownable {
   uint private randNonce = 0;
   uint private modulus = 10e10;
   mapping(uint256=>bool) pendingRequests;
@@ -41,6 +41,11 @@ contract BluezelleOracle is Ownable {
 
     ICallerContract c = ICallerContract(_callerAddress);
     c.callbackOracle(_latestPrice, _id);
+  }
+
+  function testPrice(uint price) public  returns (uint){
+    randNonce = price;
+    return price;
   }
 
   function setDBValue(string calldata _value, address _callerAddress, uint _id) external onlyOwner requestExists(_id) {
