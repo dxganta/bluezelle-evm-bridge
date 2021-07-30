@@ -43,11 +43,6 @@ contract BluzelleOracle is Ownable {
     c.callbackOracle(_latestPrice, _id);
   }
 
-  function testPrice(uint price) public  returns (uint){
-    randNonce = price;
-    return price;
-  }
-
   function setDBValue(string calldata _value, address _callerAddress, uint _id) external onlyOwner requestExists(_id) {
       delete pendingRequests[_id];
 

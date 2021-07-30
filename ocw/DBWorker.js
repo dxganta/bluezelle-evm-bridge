@@ -1,6 +1,7 @@
-// const axios = require('axios');
-// const BN = require('bn.js');
+const axios = require('axios');
 const fs = require('fs');
+const { bluzelle } = require('@bluzelle/sdk-js');
+const dotenv = require('dotenv');
 
 const SLEEP_INTERVAL = process.env.SLEEP_INTERVAL || 2000;
 const PRIVATE_KEY_FILE_NAME =
@@ -12,18 +13,27 @@ let pendingDBRequests = [];
 
 const Oracle = artifacts.require('BluzelleOracle');
 
-async function getOracleContract(oracleAddress) {
-  let oracleContract;
+const retrieveDBValueFromBluzelle = async (sdk, uuid, key) => {
+  const resp = await sdk.db.q.Read({
+    uuid,
+    key,
+  });
+  return resp;
+};
 
+const getOracleContract = async (oracleAddress) => {
+  let oracleContract;
+  // if oracle contract is already deployed then use the deployed address
   if (oracleAddress) {
     oracleContract = await Oracle.at(oracleAddress);
   } else {
+    // else deploy the contract
     oracleContract = await Oracle.new();
   }
   return oracleContract;
-}
+};
 
-async function filterEvents(oracleContract) {
+const filterEvents = async (oracleContract) => {
   oracleContract.GetDBValueEvent((err, event) => {
     if (err) {
       console.log(err);
@@ -32,33 +42,110 @@ async function filterEvents(oracleContract) {
     addDBRequestToQueue(event);
     console.log(pendingDBRequests);
   });
-}
+};
 
-async function addDBRequestToQueue(event) {
+const addDBRequestToQueue = async (event) => {
   const { callerAddress, id, uuid, key } = event.returnValues;
   pendingDBRequests.push({ callerAddress, id, uuid, key });
-}
+};
+
+const processQueue = async (sdk, oracleContract, ownerAddress) => {
+  let processedRequests = 0;
+  while (pendingDBRequests.length > 0 && processedRequests < CHUNK_SIZE) {
+    const req = pendingDBRequests.shift();
+    await processRequest(sdk, oracleContract, ownerAddress, req);
+    processedRequests++;
+  }
+};
+
+const processRequest = async (sdk, oracleContract, ownerAddress, req) => {
+  const { callerAddress, id, uuid, key } = req;
+  let retries = 0;
+  while (retries < MAX_RETRIES) {
+    try {
+      const value = await retrieveDBValueFromBluzelle(sdk, uuid, key);
+      await updateOracleContract(
+        oracleContract,
+        callerAddress,
+        ownerAddress,
+        value,
+        id
+      );
+      return;
+    } catch (err) {
+      if (retries == MAX_RETRIES - 1) {
+        await updateOracleContract(
+          oracleContract,
+          callerAddress,
+          ownerAddress,
+          '0',
+          id
+        );
+        return;
+      }
+      retries++;
+    }
+  }
+};
+
+const updateOracleContract = async (
+  oracleContract,
+  callerAddress,
+  ownerAddress,
+  value,
+  id
+) => {
+  try {
+    await oracleContract.methods
+      .setDBValue(value.toString(), callerAddress, id)
+      .send({ from: ownerAddress });
+  } catch (err) {
+    console.log('Error while calling setDBValue', err.message);
+  }
+};
+
+// get the address if contract already deployed
+const getAddress = () => {
+  try {
+    return fs.readFileSync('ORACLEADDRESS', (encoding = 'utf8'));
+  } catch (err) {
+    return;
+  }
+};
 
 // save the address to use with the testing file
-function saveAddress(address) {
-  fs.writeFileSync('ORACLEADDRESS', address, (err) => {
-    if (err) throw err;
-    console.log(`Oracle contract deployed at ${address}`);
+const saveAddress = (address) => {
+  fs.writeFileSync('ORACLEADDRESS', address);
+};
+
+const init = async () => {
+  dotenv.config();
+  const [ownerAddress] = await web3.eth.getAccounts();
+  const oracleAddress = getAddress();
+
+  const sdk = await bluzelle({
+    mnemonic: process.env.BLUZELLE_MNEMONIC,
+    url: 'wss://client.sentry.testnet.private.bluzelle.com:26657',
+    maxGas: 100000000,
+    gasPrice: 0.002,
   });
-}
 
-async function main() {
-  const contract = await getOracleContract();
-  saveAddress(contract.address);
-  filterEvents(contract);
-}
+  const oracleContract = await getOracleContract(oracleAddress);
+  saveAddress(oracleContract.address);
+  filterEvents(oracleContract);
+  return { sdk, oracleContract, ownerAddress };
+};
 
-module.exports = function (callback) {
+module.exports = function (_) {
   (async () => {
-    main();
+    const { sdk, oracleContract, ownerAddress } = await init();
     process.on('SIGINT', () => {
       console.log('Calling client.disconnect()');
       process.exit();
     });
+    setInterval(async () => {
+      console.log('PROCESSING');
+      await processQueue(sdk, oracleContract, ownerAddress);
+    }, SLEEP_INTERVAL);
   })();
 };
