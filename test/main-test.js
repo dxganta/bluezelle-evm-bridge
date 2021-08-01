@@ -1,46 +1,97 @@
-const { assert } = require('console');
 const fs = require('fs');
 const Oracle = artifacts.require('BluzelleOracle');
+const CallerContract = artifacts.require('CallerContract');
+
+const dbUUid = 'db69';
+
+const DBMap = {
+  luffy: 'captain',
+  zoro: 'swordsman',
+  sanji: 'cook',
+  franky: 'shipwright',
+  chopper: 'doctor',
+};
+
+// Notes
+// To run the test, make sure the network is set to development, i.e your local ganache client
 
 let oracleAddress = '';
 
-fs.readFile('ORACLEADDRESS', (encoding = 'utf-8'), (err, data) => {
+fs.readFile('ORACLEADDRESS', (encoding = 'utf8'), (err, data) => {
   if (err) throw err;
   oracleAddress = data;
 });
 
-contract('Console tests', async () => {
-  // beforeEach(async () => {
-  //   oracleContract = await Oracle.at(oracleAddress);
+contract('Worker tests', async () => {
+  before(async () => {
+    // deploy the oracle contract
+    oracleContract = await Oracle.at(oracleAddress);
+  });
+
+  // it('Get Oracle Value Flow Single CallerContract', async () => {
+  //   callerContract = await initCallerContract();
+  //   const prevBtc = await callerContract.btcValue();
+  //   console.log('Previous Contract Value', prevBtc.toString());
+
+  //   await callerContract.updateBtcValue();
+
+  //   // wait for 5 seconds
+  //   await sleep(5000);
+
+  //   const newBtc = await callerContract.btcValue();
+  //   console.log('New Contract Value', newBtc.toString());
+
+  //   assert.notEqual(prevBtc.toString(), newBtc.toString());
   // });
 
-  // it('should fire GetOracleValueEvent', async () => {
-  //   const tx = await oracleContract.getOracleValue('btc', 'usd');
+  // it('Get Oracle Value Flow Multiple CallerContracts', async () => {
+  //   n = 6;
+  //   callerContracts = [];
+  //   prevBtcValues = [];
+  //   newBtcValues = [];
 
-  //   assert(tx.logs[0].event == 'GetOracleValueEvent');
+  //   for (i = 0; i < n; i++) {
+  //     callerContracts[i] = await initCallerContract();
+  //     prevBtcValues[i] = await callerContracts[i].btcValue();
+  //   }
+
+  //   for (i = 0; i < callerContracts.length; i++) {
+  //     callerContracts[i].updateBtcValue();
+  //   }
+
+  //   // wait for 30 seconds
+  //   await sleep(30000);
+
+  //   for (i = 0; i < callerContracts.length; i++) {
+  //     newBtcValues[i] = await callerContracts[i].btcValue();
+  //     console.log(prevBtcValues[i].toString(), newBtcValues[i].toString());
+  //     assert.notEqual(prevBtcValues[i].toString(), newBtcValues[i].toString());
+  //   }
   // });
 
-  // it('should fire GetDBValueEvent', async () => {
-  //   const tx = await oracleContract.getDBValue('1101', 'name');
+  it('Get DB Value Flow Single CallerContract', async () => {
+    const key = 'luffy';
 
-  //   assert(tx.logs[0].event == 'GetDBValueEvent');
-  // });
+    callerContract = await initCallerContract();
 
-  const cleanPrice = (price) => {
-    const multiplier = 8;
-    price = parseFloat(price);
-    price = parseInt(price * 10 ** multiplier);
-    return price;
-  };
+    await callerContract.updateDBValue(dbUUid, key);
 
-  it('test', async () => {
-    let price = '21127.74562777363';
+    // wait for 5 seconds
+    await sleep(5000);
 
-    price = cleanPrice(price);
+    const contractValue = await callerContract.dbValue();
 
-    const oracleContract = await Oracle.new();
-
-    console.log(price.toString());
-    const tx = await oracleContract.testPrice(price.toString());
+    assert.strictEqual(contractValue, DBMap[key]);
   });
 });
+
+const initCallerContract = async () => {
+  const callerContract = await CallerContract.new();
+  await callerContract.setOracleAddress(oracleAddress);
+
+  return callerContract;
+};
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

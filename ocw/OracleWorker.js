@@ -18,7 +18,12 @@ const retrievePriceFromBluzelle = async (pair1, pair2) => {
     method: 'get',
   });
 
-  return resp;
+  // if the result value is null throw an error
+  try {
+    return resp.data.result.Value;
+  } catch (err) {
+    throw "Error: Requested Pair doesn't Exist";
+  }
 };
 
 const getOracleContract = async (oracleAddress) => {
@@ -68,11 +73,13 @@ const processRequest = async (oracleContract, ownerAddress, req) => {
         oracleContract,
         callerAddress,
         ownerAddress,
-        latestPrice,
+        latestPrice.toString(),
         id
       );
       return;
     } catch (err) {
+      // if the price retrieval from Bluzelle API fails more than MAX_RETRIES times
+      // then update the Oracle Contract with a price of zero
       if (retries == MAX_RETRIES - 1) {
         await updateOracleContract(
           oracleContract,
@@ -103,17 +110,21 @@ const updateOracleContract = async (
 ) => {
   latestPrice = cleanPrice(latestPrice);
   try {
-    await oracleContract.methods
-      .setOracleValue(latestPrice.toString(), callerAddress, id)
-      .send({ from: ownerAddress });
+    await oracleContract.setOracleValue(latestPrice, callerAddress, id, {
+      from: ownerAddress,
+    });
   } catch (err) {
-    console.log('Error while calling setOracleValue', err.message);
+    console.log('From Worker: Error while calling setOracleValue', err.message);
   }
 };
 
 // get the address if contract already deployed
 const getAddress = () => {
-  return fs.readFileSync('ORACLEADDRESS', (encoding = 'utf8'));
+  try {
+    return fs.readFileSync('ORACLEADDRESS', (encoding = 'utf8'));
+  } catch (err) {
+    return;
+  }
 };
 
 // save the address to use with the testing file

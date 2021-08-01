@@ -47,7 +47,7 @@ contract CallerContract is ICallerContract, Ownable {
         emit ReceivedNewRequestId(id);
     }
 
-    function updateDBValue(uint uuid, string calldata key) public {
+    function updateDBValue(string calldata uuid, string calldata key) public {
         uint id = oracleInstance.getDBValue(uuid, key);
         myRequests[id] = true;
         emit ReceivedNewRequestId(id);

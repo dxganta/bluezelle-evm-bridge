@@ -2,6 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const { bluzelle } = require('@bluzelle/sdk-js');
 const dotenv = require('dotenv');
+var util = require('util');
 
 const SLEEP_INTERVAL = process.env.SLEEP_INTERVAL || 2000;
 const PRIVATE_KEY_FILE_NAME =
@@ -18,7 +19,7 @@ const retrieveDBValueFromBluzelle = async (sdk, uuid, key) => {
     uuid,
     key,
   });
-  return resp;
+  return new util.TextDecoder('utf-8').decode(resp.value);
 };
 
 const getOracleContract = async (oracleAddress) => {
@@ -78,7 +79,7 @@ const processRequest = async (sdk, oracleContract, ownerAddress, req) => {
           oracleContract,
           callerAddress,
           ownerAddress,
-          '0',
+          'null',
           id
         );
         return;
@@ -96,9 +97,9 @@ const updateOracleContract = async (
   id
 ) => {
   try {
-    await oracleContract.methods
-      .setDBValue(value.toString(), callerAddress, id)
-      .send({ from: ownerAddress });
+    await oracleContract.setDBValue(value, callerAddress, id, {
+      from: ownerAddress,
+    });
   } catch (err) {
     console.log('Error while calling setDBValue', err.message);
   }
@@ -144,7 +145,6 @@ module.exports = function (_) {
       process.exit();
     });
     setInterval(async () => {
-      console.log('PROCESSING');
       await processQueue(sdk, oracleContract, ownerAddress);
     }, SLEEP_INTERVAL);
   })();
