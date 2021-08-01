@@ -40,6 +40,15 @@ contract CallerContract is ICallerContract, Ownable {
         emit OracleAddressUpdated(oracleAddress);
     }
 
+    function rechargeOracle() public payable {
+        // the account must have ether to recharge
+        oracleInstance.rechargeGas{value: msg.value}(address(this));
+    }
+
+    function withdrawGas(address payable _to, uint _amount) public onlyOwner {
+        oracleInstance.withdrawGas(_to, _amount);
+    }
+
     // currently testing the value only for the btc/usd pair
     function updateBtcValue() public {
         uint id = oracleInstance.getOracleValue("btc", "usd");
@@ -63,5 +72,9 @@ contract CallerContract is ICallerContract, Ownable {
         dbValue = value;
         delete myRequests[id];
         emit DBValueUpdated(value, id);
+    }
+
+    receive() external payable {
+
     }
 }

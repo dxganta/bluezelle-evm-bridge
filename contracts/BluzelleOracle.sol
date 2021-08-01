@@ -41,9 +41,9 @@ contract BluzelleOracle is Ownable {
   }
 
 // a caller may call this function to withdraw the unused gas 
-  function withdrawGas(address payable _to, uint _val) public payable {
-    require(balanceOf(_to) >= _val, "Not enough balance");
-    _balances[_to] -= _val; // no need safemath, since 0.8.0 does underflow checks by default
+  function withdrawGas(address payable _to,  uint _val) public {
+    require(balanceOf(msg.sender) >= _val, "Not enough balance");
+    _balances[msg.sender] -= _val; // no need safemath, since 0.8.0 does underflow checks by default
     _unUsedBalance -= _val;
     _to.transfer(_val);
   }
@@ -52,14 +52,14 @@ contract BluzelleOracle is Ownable {
   // the owner will only be able to withdraw ether that has been used by the caller
   // this is so that, the caller may later withdraw the unused gas if he/she wants to
   function withdraw(uint _amount) external onlyOwner {
-    uint maxAmount = _usedBalance(); // the owner can only withdraw the used balance
+    uint maxAmount = usedBalance(); // the owner can only withdraw the used balance
     require(_amount <= maxAmount);
     payable(owner()).transfer(_amount);
   }
 
   // withdraw all the used balance
   function withdrawAll() external onlyOwner {
-    payable(owner()).transfer(_usedBalance());
+    payable(owner()).transfer(usedBalance());
   }
 
     // value for a price pair like BTC/USDT
@@ -77,29 +77,36 @@ contract BluzelleOracle is Ownable {
   }
 
   function setOracleValue(uint _latestPrice, address _callerAddress, uint _id) external onlyOwner requestExists(_id) {
+    _updateBalance(gasleft() * tx.gasprice, _callerAddress);
+
     delete pendingRequests[_id];
-
-    // TODO: reduce the gasBalance of the callerAddress
-
-    // TODO: reduce the un-used balance
 
     ICallerContract c = ICallerContract(_callerAddress);
     c.callbackOracle(_latestPrice, _id);
   }
 
   function setDBValue(string calldata _value, address _callerAddress, uint _id) external onlyOwner requestExists(_id) {
+      _updateBalance(gasleft() * tx.gasprice, _callerAddress);
+
       delete pendingRequests[_id];
-
-      // TODO: reduce the gasBalance of the callerAddress
-
-      // TODO: reduce the un-used Balance
 
       ICallerContract c = ICallerContract(_callerAddress);
       c.callbackDB(_value, _id);
   }
 
+   function usedBalance() public view returns (uint) {
+    return address(this).balance - _unUsedBalance;
+  }
+
 
   // Private Functions
+
+  function _updateBalance(uint _gas, address _callerAddress) internal {
+     // reduce the gasBalance of the callerAddress
+     _balances[_callerAddress] -= _gas;
+     // reduce the un-used balance
+     _unUsedBalance -= _gas;
+  }
 
     function _updateRequest() internal returns (uint) {
         randNonce++;
@@ -107,10 +114,6 @@ contract BluzelleOracle is Ownable {
         pendingRequests[id] = true;
         return id;
     }
-
-  function _usedBalance() internal view returns (uint) {
-    return address(this).balance - _unUsedBalance;
-  }
 
     receive() external payable {
 

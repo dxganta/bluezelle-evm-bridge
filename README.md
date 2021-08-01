@@ -1,2 +1,8 @@
 ## Notes
-1. Make sure to run the OraclWorker.js first & then the DBWorker.js. Because OracleWorker will deploy the Oracle Contract if not already deployed and store it in a file.
+1. Make sure to delete the ORACLEADDRESS file, everytime you compile 
+
+2. Caller Contract Flow
+  1. deploys contract
+  2. sets the oracle Address
+  3. recharges gas 
+  4. calls the getOracleValue or getDbValue

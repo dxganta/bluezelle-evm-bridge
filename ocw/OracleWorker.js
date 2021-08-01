@@ -109,12 +109,38 @@ const updateOracleContract = async (
   id
 ) => {
   latestPrice = cleanPrice(latestPrice);
+  // get the gas balance of the caller
+  const gasBalance = await oracleContract.balanceOf(callerAddress);
+
   try {
-    await oracleContract.setOracleValue(latestPrice, callerAddress, id, {
-      from: ownerAddress,
-    });
+    // get the gas estimate for the setOracleValue call
+    const gasEstimate = await oracleContract.setOracleValue.estimateGas(
+      latestPrice,
+      callerAddress,
+      id,
+      {
+        from: ownerAddress,
+      }
+    );
+
+    if (gasBalance >= gasEstimate) {
+      try {
+        console.log('Estimated Gas: ', gasEstimate);
+        await oracleContract.setOracleValue(latestPrice, callerAddress, id, {
+          from: ownerAddress,
+          gas: gasEstimate,
+        });
+      } catch (err) {
+        console.log(
+          'From Worker: Error while calling setOracleValue',
+          err.message
+        );
+      }
+    } else {
+      console.log('Error: Not enough gas balance for ', callerAddress);
+    }
   } catch (err) {
-    console.log('From Worker: Error while calling setOracleValue', err.message);
+    console.log('Cannot estimate gas for caller ', callerAddress);
   }
 };
 
