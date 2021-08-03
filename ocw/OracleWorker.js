@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const config = require('../config');
 
 const BLUZELLE_BASE_URL =
   'https://client.sentry.testnet.public.bluzelle.com:1317/aggregator/latestPair';
@@ -129,6 +130,7 @@ const updateOracleContract = async (
         await oracleContract.setOracleValue(latestPrice, callerAddress, id, {
           from: ownerAddress,
           gas: gasEstimate,
+          gasPrice: config.gasPrice,
         });
       } catch (err) {
         console.log(

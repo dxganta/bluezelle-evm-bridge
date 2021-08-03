@@ -3,6 +3,7 @@ const fs = require('fs');
 const { bluzelle } = require('@bluzelle/sdk-js');
 const dotenv = require('dotenv');
 var util = require('util');
+const config = require('../config');
 
 const SLEEP_INTERVAL = process.env.SLEEP_INTERVAL || 2000;
 const PRIVATE_KEY_FILE_NAME =
@@ -114,6 +115,8 @@ const updateOracleContract = async (
         console.log('Estimated Gas: ', gasEstimate);
         await oracleContract.setDBValue(value, callerAddress, id, {
           from: ownerAddress,
+          gas: gasEstimate,
+          gasPrice: config.gasPrice,
         });
       } catch (err) {
         console.log('Error while calling setDBValue', err.message);
