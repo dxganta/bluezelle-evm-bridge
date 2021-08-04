@@ -314,9 +314,8 @@ function sleep(ms) {
 }
 
 // TODO:
-// what to do if the worker goes offline? what about the requests that come while the worker is offline?
-// what if the caller sends the gasPrice with the call?
 
 // Deploy the contracts to Ropsten
 // Upload the workers to IPFS and keep em running
-// Develop the frontend for interacting with the deployed oracle contract
+// update the tests based on the changes (unusedBalance => usedBalance, sending of gasPrice with caller requests)
+// write the documentation & record demo video

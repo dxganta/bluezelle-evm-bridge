@@ -28,14 +28,8 @@ const retrievePriceFromBluzelle = async (pair1, pair2) => {
 };
 
 const getOracleContract = async (oracleAddress) => {
-  let oracleContract;
-  // if oracle contract is already deployed then use the deployed address
-  if (oracleAddress) {
-    oracleContract = await Oracle.at(oracleAddress);
-  } else {
-    // else deploy the contract
-    oracleContract = await Oracle.new();
-  }
+  // oracle contract must be already deployed using "truffle migrate"
+  let oracleContract = await Oracle.at(oracleAddress);
   return oracleContract;
 };
 
@@ -151,23 +145,13 @@ const updateOracleContract = async (
 
 // get the address if contract already deployed
 const getAddress = () => {
-  try {
-    return fs.readFileSync('ORACLEADDRESS', (encoding = 'utf8'));
-  } catch (err) {
-    return;
-  }
-};
-
-// save the address to use with the testing file
-const saveAddress = (address) => {
-  fs.writeFileSync('ORACLEADDRESS', address);
+  return fs.readFileSync('ORACLEADDRESS', (encoding = 'utf8'));
 };
 
 const init = async () => {
   const [ownerAddress] = await web3.eth.getAccounts();
   const oracleAddress = getAddress();
   const oracleContract = await getOracleContract(oracleAddress);
-  saveAddress(oracleContract.address);
   filterEvents(oracleContract);
   return { oracleContract, ownerAddress };
 };

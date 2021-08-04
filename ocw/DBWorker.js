@@ -24,14 +24,8 @@ const retrieveDBValueFromBluzelle = async (sdk, uuid, key) => {
 };
 
 const getOracleContract = async (oracleAddress) => {
-  let oracleContract;
-  // if oracle contract is already deployed then use the deployed address
-  if (oracleAddress) {
-    oracleContract = await Oracle.at(oracleAddress);
-  } else {
-    // else deploy the contract
-    oracleContract = await Oracle.new();
-  }
+  // oracle contract must be already deployed using "truffle migrate"
+  let oracleContract = await Oracle.at(oracleAddress);
   return oracleContract;
 };
 
@@ -141,11 +135,6 @@ const getAddress = () => {
   }
 };
 
-// save the address to use with the testing file
-const saveAddress = (address) => {
-  fs.writeFileSync('ORACLEADDRESS', address);
-};
-
 const init = async () => {
   dotenv.config();
   const [ownerAddress] = await web3.eth.getAccounts();
@@ -159,7 +148,6 @@ const init = async () => {
   });
 
   const oracleContract = await getOracleContract(oracleAddress);
-  saveAddress(oracleContract.address);
   filterEvents(oracleContract);
   return { sdk, oracleContract, ownerAddress };
 };
