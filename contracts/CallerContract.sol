@@ -50,14 +50,14 @@ contract CallerContract is ICallerContract, Ownable {
     }
 
     // currently testing the value only for the btc/usd pair
-    function updateBtcValue() public {
-        uint id = oracleInstance.getOracleValue("btc", "usd");
+    function updateBtcValue(uint _gasPrice) public {
+        uint id = oracleInstance.getOracleValue("btc", "usd", _gasPrice);
         myRequests[id] = true;
         emit ReceivedNewRequestId(id);
     }
 
-    function updateDBValue(string calldata uuid, string calldata key) public {
-        uint id = oracleInstance.getDBValue(uuid, key);
+    function updateDBValue(string calldata uuid, string calldata key, uint gasPrice) public {
+        uint id = oracleInstance.getDBValue(uuid, key, gasPrice);
         myRequests[id] = true;
         emit ReceivedNewRequestId(id);
     }

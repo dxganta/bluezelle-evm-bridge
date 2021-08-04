@@ -51,8 +51,8 @@ const filterEvents = async (oracleContract) => {
 };
 
 const addOracleRequestToQueue = async (event) => {
-  const { callerAddress, id, pair1, pair2 } = event.returnValues;
-  pendingOracleRequests.push({ callerAddress, id, pair1, pair2 });
+  const { callerAddress, id, pair1, pair2, gasPrice } = event.returnValues;
+  pendingOracleRequests.push({ callerAddress, id, pair1, pair2, gasPrice });
 };
 
 const processQueue = async (oracleContract, ownerAddress) => {
@@ -65,7 +65,7 @@ const processQueue = async (oracleContract, ownerAddress) => {
 };
 
 const processRequest = async (oracleContract, ownerAddress, req) => {
-  const { callerAddress, id, pair1, pair2 } = req;
+  const { callerAddress, id, pair1, pair2, gasPrice } = req;
   let retries = 0;
   while (retries < MAX_RETRIES) {
     try {
@@ -75,7 +75,8 @@ const processRequest = async (oracleContract, ownerAddress, req) => {
         callerAddress,
         ownerAddress,
         latestPrice.toString(),
-        id
+        id,
+        gasPrice
       );
       return;
     } catch (err) {
@@ -87,7 +88,8 @@ const processRequest = async (oracleContract, ownerAddress, req) => {
           callerAddress,
           ownerAddress,
           '0',
-          id
+          id,
+          gasPrice
         );
         return;
       }
@@ -107,7 +109,8 @@ const updateOracleContract = async (
   callerAddress,
   ownerAddress,
   latestPrice,
-  id
+  id,
+  gasPrice
 ) => {
   latestPrice = cleanPrice(latestPrice);
   // get the gas balance of the caller
@@ -124,13 +127,13 @@ const updateOracleContract = async (
       }
     );
 
-    if (gasBalance >= gasEstimate) {
+    if (gasBalance >= gasEstimate * gasPrice) {
       try {
         console.log('Estimated Gas: ', gasEstimate);
         await oracleContract.setOracleValue(latestPrice, callerAddress, id, {
           from: ownerAddress,
           gas: gasEstimate,
-          gasPrice: config.gasPrice,
+          gasPrice: gasPrice,
         });
       } catch (err) {
         console.log(

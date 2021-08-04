@@ -47,8 +47,8 @@ const filterEvents = async (oracleContract) => {
 };
 
 const addDBRequestToQueue = async (event) => {
-  const { callerAddress, id, uuid, key } = event.returnValues;
-  pendingDBRequests.push({ callerAddress, id, uuid, key });
+  const { callerAddress, id, uuid, key, gasPrice } = event.returnValues;
+  pendingDBRequests.push({ callerAddress, id, uuid, key, gasPrice });
 };
 
 const processQueue = async (sdk, oracleContract, ownerAddress) => {
@@ -61,7 +61,7 @@ const processQueue = async (sdk, oracleContract, ownerAddress) => {
 };
 
 const processRequest = async (sdk, oracleContract, ownerAddress, req) => {
-  const { callerAddress, id, uuid, key } = req;
+  const { callerAddress, id, uuid, key, gasPrice } = req;
   let retries = 0;
   while (retries < MAX_RETRIES) {
     try {
@@ -71,7 +71,8 @@ const processRequest = async (sdk, oracleContract, ownerAddress, req) => {
         callerAddress,
         ownerAddress,
         value,
-        id
+        id,
+        gasPrice
       );
       return;
     } catch (err) {
@@ -81,7 +82,8 @@ const processRequest = async (sdk, oracleContract, ownerAddress, req) => {
           callerAddress,
           ownerAddress,
           'null',
-          id
+          id,
+          gasPrice
         );
         return;
       }
@@ -95,7 +97,8 @@ const updateOracleContract = async (
   callerAddress,
   ownerAddress,
   value,
-  id
+  id,
+  gasPrice
 ) => {
   // get the gas balance of the caller
   const gasBalance = await oracleContract.balanceOf(callerAddress);
@@ -110,13 +113,13 @@ const updateOracleContract = async (
         from: ownerAddress,
       }
     );
-    if (gasBalance >= gasEstimate) {
+    if (gasBalance >= gasEstimate * gasPrice) {
       try {
         console.log('Estimated Gas: ', gasEstimate);
         await oracleContract.setDBValue(value, callerAddress, id, {
           from: ownerAddress,
           gas: gasEstimate,
-          gasPrice: config.gasPrice,
+          gasPrice: gasPrice,
         });
       } catch (err) {
         console.log('Error while calling setDBValue', err.message);
