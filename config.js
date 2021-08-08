@@ -1,3 +1,3 @@
 module.exports = {
-  gasPrice: 20000000000,
+  gasPrice: 40000000000,
 };

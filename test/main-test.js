@@ -3,6 +3,7 @@ const { catchRevert } = require('../exceptions.js');
 const config = require('../config.js');
 const Oracle = artifacts.require('BluzelleOracle');
 const CallerContract = artifacts.require('CallerContract');
+const gasP = config.gasPrice;
 
 const dbUUid = 'db69';
 
@@ -25,88 +26,88 @@ fs.readFile('ORACLEADDRESS', (encoding = 'utf8'), (err, data) => {
 });
 
 contract('Worker tests', async (accounts) => {
-  // before(async () => {
-  //   // deploy the oracle contract
-  //   oracleContract = await Oracle.at(oracleAddress);
-  // });
+  before(async () => {
+    // deploy the oracle contract
+    oracleContract = await Oracle.at(oracleAddress);
+  });
 
-  //   it('Get Oracle Value Flow Single CallerContract', async () => {
-  //     callerContract = await initCallerContract();
-  //     const prevBtc = await callerContract.btcValue();
-  //     // console.log('Previous Contract Value', prevBtc.toString());
+  it('Get Oracle Value Flow Single CallerContract', async () => {
+    callerContract = await initCallerContract();
+    const prevBtc = await callerContract.btcValue();
+    // console.log('Previous Contract Value', prevBtc.toString());
 
-  //     await callerContract.updateBtcValue();
+    await callerContract.updateBtcValue(gasP);
 
-  //     // wait for 5 seconds
-  //     await sleep(5000);
+    // wait for 5 seconds
+    await sleep(5000);
 
-  //     const newBtc = await callerContract.btcValue();
-  //     // console.log('New Contract Value', newBtc.toString());
+    const newBtc = await callerContract.btcValue();
+    // console.log('New Contract Value', newBtc.toString());
 
-  //     assert.notEqual(prevBtc.toString(), newBtc.toString());
-  //   });
+    assert.notEqual(prevBtc.toString(), newBtc.toString());
+  });
 
-  //   it('Get Oracle Value Flow Multiple CallerContracts', async () => {
-  //     n = 6;
-  //     callerContracts = [];
-  //     prevBtcValues = [];
-  //     newBtcValues = [];
+  it('Get Oracle Value Flow Multiple CallerContracts', async () => {
+    n = 6;
+    callerContracts = [];
+    prevBtcValues = [];
+    newBtcValues = [];
 
-  //     for (i = 0; i < n; i++) {
-  //       callerContracts[i] = await initCallerContract();
-  //       prevBtcValues[i] = await callerContracts[i].btcValue();
-  //     }
+    for (i = 0; i < n; i++) {
+      callerContracts[i] = await initCallerContract();
+      prevBtcValues[i] = await callerContracts[i].btcValue();
+    }
 
-  //     for (i = 0; i < callerContracts.length; i++) {
-  //       callerContracts[i].updateBtcValue();
-  //     }
+    for (i = 0; i < callerContracts.length; i++) {
+      callerContracts[i].updateBtcValue(gasP);
+    }
 
-  //     // wait for 20 seconds
-  //     await sleep(20000);
+    // wait for 20 seconds
+    await sleep(20000);
 
-  //     for (i = 0; i < callerContracts.length; i++) {
-  //       newBtcValues[i] = await callerContracts[i].btcValue();
-  //       // console.log(prevBtcValues[i].toString(), newBtcValues[i].toString());
-  //       assert.notEqual(prevBtcValues[i].toString(), newBtcValues[i].toString());
-  //     }
-  //   });
+    for (i = 0; i < callerContracts.length; i++) {
+      newBtcValues[i] = await callerContracts[i].btcValue();
+      // console.log(prevBtcValues[i].toString(), newBtcValues[i].toString());
+      assert.notEqual(prevBtcValues[i].toString(), newBtcValues[i].toString());
+    }
+  });
 
-  // it('Get DB Value Flow Single CallerContract', async () => {
-  //   const key = Array.from(dbMap.keys())[0];
+  it('Get DB Value Flow Single CallerContract', async () => {
+    const key = Array.from(dbMap.keys())[0];
 
-  //   callerContract = await initCallerContract();
+    let c = await initCallerContract();
 
-  //   await callerContract.updateDBValue(dbUUid, key);
+    await c.updateDBValue(dbUUid, key, gasP);
 
-  //   // wait for 5 seconds
-  //   await sleep(5000);
+    // wait for 5 seconds
+    await sleep(5000);
 
-  //   const contractValue = await callerContract.dbValue();
+    const contractValue = await c.dbValue();
 
-  //   assert.strictEqual(contractValue, dbMap.get(key));
-  // });
+    assert.strictEqual(contractValue, dbMap.get(key));
+  });
 
-  //   it('Get DB Value Flow Multiple CallerContracts', async () => {
-  //     keys = Array.from(dbMap.keys());
-  //     n = 5;
-  //     callerContracts = [];
-  //     newDBValues = [];
+  it('Get DB Value Flow Multiple CallerContracts', async () => {
+    keys = Array.from(dbMap.keys());
+    n = 5;
+    callerContracts = [];
+    newDBValues = [];
 
-  //     for (i = 0; i < n; i++) {
-  //       callerContracts[i] = await initCallerContract();
-  //     }
+    for (i = 0; i < n; i++) {
+      callerContracts[i] = await initCallerContract();
+    }
 
-  //     for (i = 0; i < n; i++) {
-  //       callerContracts[i].updateDBValue(dbUUid, keys[i]);
-  //     }
+    for (i = 0; i < n; i++) {
+      callerContracts[i].updateDBValue(dbUUid, keys[i], gasP);
+    }
 
-  //     await sleep(20000);
+    await sleep(20000);
 
-  //     for (i = 0; i < n; i++) {
-  //       newVal = await callerContracts[i].dbValue();
-  //       assert.strictEqual(newVal, dbMap.get(keys[i]));
-  //     }
-  //   });
+    for (i = 0; i < n; i++) {
+      newVal = await callerContracts[i].dbValue();
+      assert.strictEqual(newVal, dbMap.get(keys[i]));
+    }
+  });
 
   const initCallerContract = async () => {
     const callerContract = await CallerContract.new();
@@ -122,9 +123,6 @@ contract('Worker tests', async (accounts) => {
 });
 
 contract('Gas Tests', async (accounts) => {
-  //TODO: tests
-  // 4. The gasBalance & unUsedBalance of a user gets reduced by EXACT AMOUNT USED (simulate the estimatePrice function here) after a call to the getOracleValue function
-
   before(async () => {
     // deploy the oracle contract
     oracleContract = await Oracle.at(oracleAddress);
@@ -138,122 +136,124 @@ contract('Gas Tests', async (accounts) => {
     return c;
   };
 
-  // it('OracleContract Owner is only able to withdraw the Used Gas', async () => {
-  //   let cContract = await initCallerContract();
+  it('OracleContract Owner is only able to withdraw the Used Gas', async () => {
+    let cContract = await initCallerContract();
 
-  //   await cContract.rechargeOracle({
-  //     from: accounts[1],
-  //     value: web3.utils.toWei('1', 'ether'),
-  //   });
+    await cContract.rechargeOracle({
+      from: accounts[1],
+      value: web3.utils.toWei('1', 'ether'),
+    });
 
-  //   let usedBalance = await oracleContract.usedBalance();
+    let usedBalance = await oracleContract.usedBalance();
 
-  //   // should throw error
-  //   await catchRevert(
-  //     oracleContract.withdrawGas(accounts[2], toWei(1), {
-  //       from: owner,
-  //     })
-  //   );
+    // should throw error
+    await catchRevert(
+      oracleContract.withdrawGas(accounts[2], toWei(1), {
+        from: owner,
+      })
+    );
 
-  //   // use some gas
-  //   await cContract.updateBtcValue();
+    // use some gas
+    await cContract.updateBtcValue(gasP);
 
-  //   // wait 5 seconds
-  //   await sleep(5000);
+    // wait 5 seconds
+    await sleep(5000);
 
-  //   // make sure used balance is updated
-  //   let newUsedBalance = await oracleContract.usedBalance();
-  //   assert.isAbove(bnToInt(newUsedBalance), bnToInt(usedBalance));
+    // make sure used balance is updated
+    let newUsedBalance = await oracleContract.usedBalance();
+    assert.isAbove(bnToInt(newUsedBalance), bnToInt(usedBalance));
 
-  //   let oldBalance = await balance(owner);
-  //   // without error
-  //   await oracleContract.withdrawAll({
-  //     from: owner,
-  //   });
+    let oldBalance = await balance(owner);
+    // without error
+    await oracleContract.withdrawAll({
+      from: owner,
+    });
 
-  //   let newBalance = await balance(owner);
+    let newBalance = await balance(owner);
 
-  //   assert.isAbove(newBalance, oldBalance);
+    assert.isAbove(newBalance, oldBalance);
 
-  //   // used balance must be zero after calling withdrawAll
-  //   assert.strictEqual(bnToInt(await oracleContract.usedBalance()), 0);
-  // });
+    const usedB = bnToInt(await oracleContract.usedBalance());
 
-  // it('The Oracle & DB Value must only get updated when the caller has enough gas balance', async () => {
-  //   let callerContract = await initCallerContract();
-  //   let key = 'luffy';
+    // used balance must be zero after calling withdrawAll
+    assert.strictEqual(usedB, 0);
+  });
 
-  //   const prevDBValue = await callerContract.dbValue();
-  //   const prevOracleValue = await callerContract.btcValue();
+  it('The Oracle & DB Value must only get updated when the caller has enough gas balance', async () => {
+    let callerContract = await initCallerContract();
+    let key = 'luffy';
 
-  //   await callerContract.updateBtcValue();
-  //   await callerContract.updateDBValue(dbUUid, key);
+    const prevDBValue = await callerContract.dbValue();
+    const prevOracleValue = await callerContract.btcValue();
 
-  //   // wait 5 seconds
-  //   await sleep(5000);
+    await callerContract.updateBtcValue(gasP);
+    await callerContract.updateDBValue(dbUUid, key, gasP);
 
-  //   // The values must stay same and not get updated
-  //   assert.strictEqual(
-  //     prevDBValue.toString(),
-  //     (await callerContract.dbValue()).toString()
-  //   );
-  //   assert.strictEqual(
-  //     prevOracleValue.toString(),
-  //     (await callerContract.btcValue()).toString()
-  //   );
+    // wait 5 seconds
+    await sleep(5000);
 
-  //   await callerContract.rechargeOracle({
-  //     from: accounts[1],
-  //     value: web3.utils.toWei('1', 'ether'),
-  //   });
+    // The values must stay same and not get updated
+    assert.strictEqual(
+      prevDBValue.toString(),
+      (await callerContract.dbValue()).toString()
+    );
+    assert.strictEqual(
+      prevOracleValue.toString(),
+      (await callerContract.btcValue()).toString()
+    );
 
-  //   await callerContract.updateBtcValue();
-  //   await callerContract.updateDBValue(dbUUid, key);
+    await callerContract.rechargeOracle({
+      from: accounts[1],
+      value: web3.utils.toWei('1', 'ether'),
+    });
 
-  //   // wait 5 seconds
-  //   await sleep(5000);
+    await callerContract.updateBtcValue(gasP);
+    await callerContract.updateDBValue(dbUUid, key, gasP);
 
-  //   // This time the values must get updated
-  //   console.log('DB VAlue', (await callerContract.dbValue()).toString());
-  //   assert.strictEqual(
-  //     dbMap.get(key),
-  //     (await callerContract.dbValue()).toString()
-  //   );
-  //   assert.notEqual(
-  //     prevOracleValue.toString(),
-  //     (await callerContract.btcValue()).toString()
-  //   );
-  // });
+    // wait 5 seconds
+    await sleep(5000);
 
-  // it('Caller is able to withdraw un-used gas & not anymore', async () => {
-  //   callerContract = await initCallerContract();
-  //   c = callerContract.address;
+    // This time the values must get updated
+    console.log('DB VAlue', (await callerContract.dbValue()).toString());
+    assert.strictEqual(
+      dbMap.get(key),
+      (await callerContract.dbValue()).toString()
+    );
+    assert.notEqual(
+      prevOracleValue.toString(),
+      (await callerContract.btcValue()).toString()
+    );
+  });
 
-  //   let gas = toWei(1);
+  it('Caller is able to withdraw un-used gas & not anymore', async () => {
+    callerContract = await initCallerContract();
+    c = callerContract.address;
 
-  //   await callerContract.rechargeOracle({
-  //     from: accounts[1],
-  //     value: gas,
-  //   });
+    let gas = toWei(1);
 
-  //   assert.strictEqual((await oracleContract.balanceOf(c)).toString(), gas);
+    await callerContract.rechargeOracle({
+      from: accounts[1],
+      value: gas,
+    });
 
-  //   let prevBalance = await balance(accounts[2]);
+    assert.strictEqual((await oracleContract.balanceOf(c)).toString(), gas);
 
-  //   // should throw error if caller tries to withdraw more than gas balance
-  //   await catchRevert(
-  //     callerContract.withdrawGas(accounts[2], '1000000000000000001', {
-  //       from: owner,
-  //     }),
-  //     'Not enough balance.'
-  //   );
+    let prevBalance = await balance(accounts[2]);
 
-  //   await callerContract.withdrawGas(accounts[2], gas, { from: owner });
+    // should throw error if caller tries to withdraw more than gas balance
+    await catchRevert(
+      callerContract.withdrawGas(accounts[2], '1000000000000000001', {
+        from: owner,
+      }),
+      'Not enough balance.'
+    );
 
-  //   let newBalance = await balance(accounts[2]);
+    await callerContract.withdrawGas(accounts[2], gas, { from: owner });
 
-  //   assert.strictEqual((newBalance - prevBalance).toString(), gas);
-  // });
+    let newBalance = await balance(accounts[2]);
+
+    assert.strictEqual((newBalance - prevBalance).toString(), gas);
+  });
 
   it('Gas Balance reduced for caller must be greater than or equal to the gas spent by the OracleWorker owner', async () => {
     // The actual gas will be paid by the OracleWorker owner
@@ -273,7 +273,7 @@ contract('Gas Tests', async (accounts) => {
     console.log('Previous Oracle value', bnToInt(await c.btcValue()));
 
     // use some gas
-    await c.updateBtcValue({ from: user });
+    await c.updateBtcValue(gasP, { from: user });
 
     // wait 5 seconds
     await sleep(5000);

@@ -4,11 +4,6 @@ pragma solidity ^0.8.0;
 import "./dependencies/Ownable.sol";
 import "./interfaces/ICallerContract.sol";
 
-// TODO:
-// the strings that I have used are actually bytes32 values
-// but the real values will be pretty small right, like "usdt" "btc", etc.
-// so put a bytes___ (like bytes12 or maybe bytes8, etc.) value instead of string. figure out which one will be the best
-
 
 contract BluzelleOracle is Ownable {
   uint8 public constant decimals = 8;
@@ -42,17 +37,20 @@ contract BluzelleOracle is Ownable {
   }
 
   // withdraws ether from the contracts balance to the owner, to be used by the ocw as gas
-  // the owner will only be able to withdraw ether that has been used by the caller
+  // the owner will only be able to withdraw ether that has been used by the callers
   // this is so that, the caller may later withdraw the unused gas if he/she wants to
   function withdraw(uint _amount) external onlyOwner {
    // the owner can only withdraw the used balance
     require(_amount <= usedBalance);
+    usedBalance -= _amount;
     payable(owner()).transfer(_amount);
   }
 
   // withdraw all the used balance
   function withdrawAll() external onlyOwner {
-    payable(owner()).transfer(usedBalance);
+    uint _amount = usedBalance;
+    usedBalance = 0;
+    payable(owner()).transfer(_amount);
   }
 
     // value for a price pair like BTC/USDT

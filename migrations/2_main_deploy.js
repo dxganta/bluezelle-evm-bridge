@@ -8,16 +8,23 @@ const saveAddress = (address) => {
   fs.writeFileSync('ORACLEADDRESS', address);
 };
 
-module.exports = async (deployer) => {
-  await deployer.deploy(BluzelleOracle);
-  const blu = await BluzelleOracle.deployed();
+module.exports = async (deployer, network) => {
+  if (network == 'development') {
+    await deployer.deploy(BluzelleOracle, { overwrite: false });
+    const blu = await BluzelleOracle.deployed();
 
-  saveAddress(blu.address);
+    saveAddress(blu.address);
+  } else {
+    await deployer.deploy(BluzelleOracle);
+    const blu = await BluzelleOracle.deployed();
 
-  // also deploy the demo caller contract
-  // if you just want to deploy the oracle contract then comment the below lines
-  await deployer.deploy(CallerContract);
-  const caller = await CallerContract.deployed();
+    saveAddress(blu.address);
 
-  caller.setOracleAddress(blu.address);
+    // also deploy the demo caller contract
+    // if you just want to deploy the oracle contract then comment the below lines
+    await deployer.deploy(CallerContract);
+    const caller = await CallerContract.deployed();
+
+    caller.setOracleAddress(blu.address);
+  }
 };
