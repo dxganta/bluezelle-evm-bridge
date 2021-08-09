@@ -100,8 +100,18 @@ info: sets the db value for a particular request id, and also calls the callback
 access: only owner
 ```
 
+## A Note on Fees
+TODO:
+
 ## Setup & Installation
 1. Install truffle & ganache-cli, if you haven't already.
+
+2. Rename the .env.example file to .env. Also replace the values with real values from your accounts.
+
+2. Install the js dependencies
+```
+npm install
+```
 
 ### For running tests
 2. Open a new terminal and start up a local ganache server using below command
@@ -126,19 +136,7 @@ truffle exec ocw/DBWorker.js
 ```
 truffle test
 ```
-
-## Notes
-1. Make sure to delete the ORACLEADDRESS file, everytime you compile 
-2. Talk about the gas price in the video. How difficult it is to set a gas price for the transaction. Maybe check the new ethereum london upgradge gas price selector.
-3. So you will need another thing. To change the gas price, the owner has to stop the worker, change the price & redeploy the worker. Now, we don't want to release the pending requests while the worker is stopped right. So integrate that block thing that the crypto zombie guys said, to keep track of the last block of the pending requests or something. I don't know. Check it.
-
-4. It is very tricky to decide how much gas the oracleContract will use while updating the values, so a decision was taken to have that gasPrice value passed by the caller itself.
-
-2. Caller Contract Flow
-  1. deploys contract
-  2. sets the oracle Address
-  3. recharges gas 
-  4. calls the getOracleValue or getDbValue
+<img src="https://user-images.githubusercontent.com/47485188/128638120-05263733-43ed-4c6f-8cb2-c09e294c7ae7.png"></img>
 
 
 ## Ropsten Addresses
