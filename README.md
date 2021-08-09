@@ -16,7 +16,7 @@ This is just a demo caller contract which has been added for testing & for refer
 Whenever, the worker posts a reply back for a request, it has to spend some gas. Now this gas has to be paid by the caller who posted the request. To keep track of this, a gas storing & recharging mechanism has been implemented in the oracle smart contract. Instead of the caller sending some ether as gas everytime to the oracle whenever he/she makes a request, the caller has to instead recharge the oracle with ether just once by calling a separate function. <br>
 The oracle contract keeps track of the ether balance of a caller. Whenever, the worker posts the reply for a request back, it first checks if the caller has enough ether balance to pay as gas, if yes, then it posts the reply back and reduces the caller's balance by that amount. If not enough balance, then no reply is posted.
 
-Later, the owner of the off-chain-worker can call a simple withdraw function to withdraw the used ether from the oracle contract.<strong>Note:</strong>The owner of the off-chain-worker and the oracle contract must be the same account.<br>
+Later, the owner of the off-chain-worker can call a simple withdraw function to withdraw the used ether from the oracle contract.<strong> Note:</strong> The owner of the off-chain-worker and the oracle contract must be the same account.<br>
 
 <strong>rechargeGas(address for)</strong>
 ```
@@ -104,35 +104,39 @@ access: only owner
 TODO:
 
 ## Setup & Installation
-1. Install truffle & ganache-cli, if you haven't already.
+1. Install [truffle](https://www.trufflesuite.com/docs/truffle/getting-started/installation) & [ganache-cli](https://github.com/trufflesuite/ganache-cli), if you haven't already.
 
 2. Rename the .env.example file to .env. Also replace the values with real values from your accounts.
 
-2. Install the js dependencies
+3. Install the js dependencies
 ```
 npm install
 ```
 
 ### For running tests
-2. Open a new terminal and start up a local ganache server using below command
+4. Open a new terminal and start up a local ganache server using below command
 ```
 ganache-cli
 ```
-3. Migrate the contracts
+5. Compile the contracts
+```
+truffle compile
+```
+6. Migrate the contracts
 ```
 truffle migrate
 ```
 <strong>Note:</strong> Since both the workers & the test files need to be using the same oracle contract address, the above function also saves the deployed address to a file named "ORACLEADDRESS" in the root directory. <br>
 
-3. Open another terminal and run the Oracle Worker using below command from project root directory
+7. Open another terminal and run the Oracle Worker using below command from project root directory
 ```
 truffle exec ocw/OracleWorker.js
 ```
-4. Open another terminal and run the DB Worker, from project root
+8. Open another terminal and run the DB Worker, from project root
 ```
 truffle exec ocw/DBWorker.js
 ```
-5. Run the tests
+9. Run the tests
 ```
 truffle test
 ```
@@ -140,5 +144,5 @@ truffle test
 
 
 ## Ropsten Addresses
-BluZelle Oracle: [0x22cF269B53Be6da5f576f9396Ac075aa39415718](https://ropsten.etherscan.io/address/0x22cF269B53Be6da5f576f9396Ac075aa39415718)<br>
-CallerContract:  [0xe5dA695fB28749bdCEbEAcA57538dA2Cc9B2B995](https://ropsten.etherscan.io/address/0xe5dA695fB28749bdCEbEAcA57538dA2Cc9B2B995)
+BluZelle Oracle: [0xf670AF0b1c8a6229C7C3c96Ba3993894436dF44F](https://ropsten.etherscan.io/address/0xf670AF0b1c8a6229C7C3c96Ba3993894436dF44F)<br>
+CallerContract:  [0xcbeEb51524De23a62E1777B6506D07E3A7061CAb](https://ropsten.etherscan.io/address/0xcbeEb51524De23a62E1777B6506D07E3A7061CAb)
