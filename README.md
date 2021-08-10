@@ -101,7 +101,7 @@ access: only owner
 ```
 
 ## A Note on Fees
-TODO:
+When the worker makes a request, it deducts the gas spent from the caller's balance. Now, this gas has to be calculated in advance, before making the request. For that we are using truffle's estimateGas function & sending that exact gas as the maximum gas to be used while making the request. Turns out, truffle overestimates the gas calculation a bit, and hence the worker is returned some gas, but the full estimated gas is deducted from the caller's balance. Hence, this returned gas is the fees earned by the worker. On average, this fees is around 0.00025 ether per request. 
 
 ## Setup & Installation
 1. Install [truffle](https://www.trufflesuite.com/docs/truffle/getting-started/installation) & [ganache-cli](https://github.com/trufflesuite/ganache-cli), if you haven't already.
