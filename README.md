@@ -142,6 +142,8 @@ truffle test
 ```
 <img src="https://user-images.githubusercontent.com/47485188/128638120-05263733-43ed-4c6f-8cb2-c09e294c7ae7.png"></img>
 
+## Demo Video:
+[<img src="https://youtu.be/ADpgOCpgc30">](https://youtu.be/SgkRjRihi9M)
 
 ## Ropsten Addresses
 BluZelle Oracle: [0xf670AF0b1c8a6229C7C3c96Ba3993894436dF44F](https://ropsten.etherscan.io/address/0xf670AF0b1c8a6229C7C3c96Ba3993894436dF44F)<br>
